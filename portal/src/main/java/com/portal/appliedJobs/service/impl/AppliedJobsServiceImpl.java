@@ -7,14 +7,17 @@ import com.portal.appliedJobs.service.EmailService;
 import com.portal.appliedJobs.service.ResumeService;
 import com.portal.jobs.entities.Job;
 import com.portal.jobs.service.JobService;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+
+import com.portal.user.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class AppliedJobsServiceImpl {
@@ -23,52 +26,69 @@ public class AppliedJobsServiceImpl {
     private final ResumeService resumeService;
     private final EmailService emailService;
     private final JobService jobService;
+    private final UserService userService;
 
-    public AppliedJobsServiceImpl(AppliedJobRepository appliedJobsRepository, ResumeService resumeService, EmailService emailService, JobService jobService) {
+    public AppliedJobsServiceImpl(AppliedJobRepository appliedJobsRepository, ResumeService resumeService, EmailService emailService, JobService jobService, UserService userService) {
         this.appliedJobsRepository = appliedJobsRepository;
         this.resumeService = resumeService;
         this.emailService = emailService;
         this.jobService = jobService;
+        this.userService = userService;
     }
 
     public ResponseEntity<String> applyForJob(String applicantEmail, String resumeUrl, String jobId) {
         try {
             Job job = jobService.getJobById(jobId).getBody();
+            if (job == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Job not found");
 
-            // Step 1: Check expiry
-            assert job != null;
+            // Step 1: Check job expiry
             if (LocalDateTime.now().isAfter(job.getDeadline())) {
-                jobService.deleteJob(jobId,job.getEmail()); // Optional: delete if expired
+                jobService.deleteJob(jobId, job.getEmail()); // Optional cleanup
                 return ResponseEntity.badRequest().body("Job has already expired.");
             }
 
-            // Step 2: Extract and calculate match
+            // Step 2: Check existing application
+            Optional<AppliedJobs> existingApplication = appliedJobsRepository.findByApplicantEmailAndJobId(applicantEmail, jobId);
+            if (existingApplication.isPresent()) {
+                AppliedJobs appliedJobs = existingApplication.get();
+                System.out.println(appliedJobs.toString());
+                if (appliedJobs.getStatus() == Status.REJECTED) {
+                    LocalDateTime banExpiry = appliedJobs.getBanExpiryDate();
+                    if (banExpiry != null && LocalDateTime.now().isBefore(banExpiry)) {
+                        return ResponseEntity.badRequest().body("Application rejected previously. You can reapply after " + banExpiry.toLocalDate());
+                    }
+                }
+                if (appliedJobs.getStatus() == Status.PENDING) {
+                    return ResponseEntity.badRequest().body("Already applied. Status is pending.");
+                }
+            }
+
+            // Step 3: Process resume and score
             String resumeText = resumeService.extractResumeText(resumeUrl);
             double score = resumeService.calculateMatchScore(resumeText, job.getDescription());
 
-            // Step 3: Prepare AppliedJobs entity
+            // Step 4: Prepare and save new application
             AppliedJobs applied = new AppliedJobs();
             applied.setApplicantEmail(applicantEmail);
             applied.setResumeUrl(resumeUrl);
             applied.setJobId(jobId);
             applied.setAppliedOn(LocalDateTime.now());
-
-            if (score >= 0.80) {
-                // Match high → send HR mail and mark Reviewing
-                emailService.sendHrEmail(applicantEmail, job, resumeUrl);
+            String applicantName = Objects.requireNonNull(userService.getUser(applicantEmail).getBody()).getName();
+            if(applicantName == null){
+                ResponseEntity.badRequest().body("No User Exist");
+            }
+            if (score <= 0.80) {
+                emailService.sendHrEmail(applicantEmail, job, resumeUrl,applicantName);
                 applied.setStatus(Status.REVIEWING);
             } else {
-                // Low match → send rejection and ban for 6 months
-                emailService.sendRejectionEmail(applicantEmail, job);
+                emailService.sendRejectionEmail(applicantEmail, job, resumeUrl,applicantName);
                 applied.setStatus(Status.REJECTED);
                 applied.setBanExpiryDate(LocalDateTime.now().plusMonths(6));
             }
 
             appliedJobsRepository.save(applied);
             return ResponseEntity.ok("Application processed successfully.");
-
         } catch (Exception e) {
-            // Step 4: On any failure, save with PENDING status
             AppliedJobs failed = new AppliedJobs();
             failed.setApplicantEmail(applicantEmail);
             failed.setResumeUrl(resumeUrl);

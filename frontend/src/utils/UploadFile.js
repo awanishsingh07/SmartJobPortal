@@ -2,7 +2,7 @@ import axios from "axios";
 export const uploadFileToS3 = async (file) => {
   try {
     const fileName = file.name + Date.now();
-    const response = await fetch("https://api.poltic.in/api/putObject", {
+    const response = await fetch("http://localhost:9000/proxy/putObject", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

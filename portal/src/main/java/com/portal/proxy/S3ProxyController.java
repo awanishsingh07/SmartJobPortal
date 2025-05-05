@@ -15,6 +15,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/proxy")
 public class S3ProxyController {
+    private final WebClient webClient;
+
+    public S3ProxyController(WebClient webClient) {
+        this.webClient = webClient;
+    }
 
     @PostMapping("/putObject")
     public ResponseEntity<String> getPresignedUrl(@RequestBody Map<String, String> payload) {
@@ -23,7 +28,6 @@ public class S3ProxyController {
 
         try {
             // Forward the request to the original API
-            WebClient webClient = WebClient.builder().build();
 
             String presignedUrl = webClient.post()
                     .uri("https://api.poltic.in/api/putObject")

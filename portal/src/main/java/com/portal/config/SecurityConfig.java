@@ -1,7 +1,8 @@
 package com.portal.config;
 
-import com.portal.user.security.JwtAuthenticationPoint;
+
 import com.portal.user.security.JwtAuthenticationFilter;
+import com.portal.user.security.JwtAuthenticationPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +34,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        String[] allowedRequests = {"/api/v1/auth/signup","/api/v1/auth/signin","/api/v1/auth/refresh-jwt"};
+        String[] allowedRequests = {"/api/v1/auth/signup","/api/v1/auth/signin","/api/v1/auth/refresh-jwt", "/proxy/putObject"};
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth->auth.requestMatchers(allowedRequests).permitAll()
                         .anyRequest().authenticated())

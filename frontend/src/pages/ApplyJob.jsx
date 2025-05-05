@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { uploadFileToS3 } from '../utils/UploadFile';
+// import { useParams } from 'react-router-dom';
+// import { uploadFileToS3 } from '../utils/UploadFile';
 import AuthCard from '../components/AuthCard';
 import AuthForm from '../components/AuthForm';
 import { useApplyForJob } from '../customHooks/useAppliedJob';
 
 const ApplyJobFormPage = () => {
-  const { jobId } = useParams();
+  // const { jobId } = useParams();
+  const jobId = '681710271b82e90c844d4302'
   const [formData, setFormData] = useState({
     applicantEmail: '',
     resume: null,
@@ -29,8 +30,9 @@ const ApplyJobFormPage = () => {
     try {
       if (!formData.applicantEmail) throw new Error('Email is required.');
       if (!formData.resume) throw new Error('Please upload a resume.');
-      const resumeUrl = await uploadFileToS3(formData.resume);
-      // Store additional fields in localStorage (backend doesn't accept them)
+      // const resumeUrl = await uploadFileToS3(formData.resume);
+      const resumeUrl = "https://reels-anshu.s3.eu-north-1.amazonaws.com/uploads/Keshav Maheshwari Resume.pdf1746422320265"
+
       localStorage.setItem(`application_${jobId}`, JSON.stringify({
         contactDetails: formData.contactDetails,
         githubUrl: formData.githubUrl,

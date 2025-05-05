@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
-
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const InputField = ({
   label,
@@ -22,9 +21,9 @@ const InputField = ({
         <input
           type={isPassword && showPassword ? "text" : type}
           name={name}
-          value={value}
-          onChange={onChange}
+          onChange={type === "file" ? (e) => onChange(e, true) : onChange}
           className="w-full px-4 py-2 bg-gray-800 text-gray-100 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          accept={type === "file" ? "application/pdf" : undefined}
           required
         />
         {isPassword && (
@@ -33,9 +32,7 @@ const InputField = ({
             onClick={() => setShowPassword(!showPassword)}
             className="absolute bg-gray-800 right-3 top-1/2 transform -translate-y-1/2 "
           >
-           {
-            showPassword ? <FaEye />: <FaEyeSlash />
-           }
+            {showPassword ? <FaEye /> : <FaEyeSlash />}
           </button>
         )}
       </div>

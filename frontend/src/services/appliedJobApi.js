@@ -7,7 +7,15 @@ const getAuthToken = () => {
 };
 
 // Function to apply for a job
-export const applyForJob = async (applicantEmail, resumeUrl, jobId) => {
+export const applyForJob = async (applicant) => {
+
+  // console.log(resumeUrl)
+  // console.log(jobId)
+  const { applicantEmail, resumeUrl, jobId } = { 
+    applicantEmail: applicant.applicantEmail, 
+    resumeUrl : applicant.resumeUrl, 
+    jobId : applicant.jobId
+  };
   const token = getAuthToken();
   const response = await axios.post(`${BASEURL}/api/applied-jobs/apply`, null, {
     params: { applicantEmail, resumeUrl, jobId },

@@ -11,6 +11,8 @@ import UserProfilePage from "./pages/UserProfile";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import LandingPage from "./pages/Landing";
+import InterviewPage from "./pages/InterviewPage";
+import { ScrollToTop } from "./utils/ScrollToTop";
 
 
 const App = () => {
@@ -19,6 +21,7 @@ const App = () => {
       <div className="flex flex-col min-h-screen bg-gray-900">
         <Header />
         <main className="flex-1">
+          <ScrollToTop/>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
@@ -33,6 +36,7 @@ const App = () => {
             <Route path="/privacy" element={<div className="container mx-auto p-4 text-gray-100">Privacy Policy (Placeholder)</div>} />
             <Route path="/terms" element={<div className="container mx-auto p-4 text-gray-100">Terms of Service (Placeholder)</div>} />
             <Route path="/blog" element={<div className="container mx-auto p-4 text-gray-100">Blog (Placeholder)</div>} />
+            <Route path="/room" element={<InterviewPage/>}/>
           </Routes>
         </main>
         <Footer />

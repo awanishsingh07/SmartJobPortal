@@ -73,6 +73,8 @@ public class UserServiceImpl implements UserService {
     private Boolean isHr(String email) {
         Set<String> emailSet = new TreeSet<>();
         emailSet.add("keshav.iesbpl@gmail.com");
+        emailSet.add("iamayush891@gmail.com");
+        emailSet.add("ommohangaur029@gmail.com");
         return emailSet.contains(email);
     }
 
