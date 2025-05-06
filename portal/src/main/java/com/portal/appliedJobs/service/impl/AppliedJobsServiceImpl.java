@@ -1,5 +1,6 @@
 package com.portal.appliedJobs.service.impl;
 
+import com.portal.Role;
 import com.portal.appliedJobs.Status;
 import com.portal.appliedJobs.models.AppliedJobs;
 import com.portal.appliedJobs.repository.AppliedJobRepository;
@@ -8,16 +9,14 @@ import com.portal.appliedJobs.service.ResumeService;
 import com.portal.jobs.entities.Job;
 import com.portal.jobs.service.JobService;
 
+import com.portal.user.Entities.User;
 import com.portal.user.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AppliedJobsServiceImpl {
@@ -40,7 +39,14 @@ public class AppliedJobsServiceImpl {
         try {
             Job job = jobService.getJobById(jobId).getBody();
             if (job == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Job not found");
+            User user = userService.getUser(applicantEmail).getBody();
+            if(user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with this email");
 
+            if(user.getRole() == Role.HR) {
+                if (job.getEmail().equals(user.getEmail())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("HRs cannot apply for the jobs they have posted");
+                }
+            }
             // Step 1: Check job expiry
             if (LocalDateTime.now().isAfter(job.getDeadline())) {
                 jobService.deleteJob(jobId, job.getEmail()); // Optional cleanup
@@ -55,12 +61,15 @@ public class AppliedJobsServiceImpl {
                 if (appliedJobs.getStatus() == Status.REJECTED) {
                     LocalDateTime banExpiry = appliedJobs.getBanExpiryDate();
                     if (banExpiry != null && LocalDateTime.now().isBefore(banExpiry)) {
-                        return ResponseEntity.badRequest().body("Application rejected previously. You can reapply after " + banExpiry.toLocalDate());
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body("Application rejected previously. You can reapply after " + banExpiry.toLocalDate());
                     }
                 }
                 if (appliedJobs.getStatus() == Status.PENDING) {
-                    return ResponseEntity.badRequest().body("Already applied. Status is pending.");
+                    return ResponseEntity.status(HttpStatus.CONFLICT)
+                            .body("Already applied. Status is pending.");
                 }
+
             }
 
             // Step 3: Process resume and score
@@ -75,15 +84,17 @@ public class AppliedJobsServiceImpl {
             applied.setAppliedOn(LocalDateTime.now());
             String applicantName = Objects.requireNonNull(userService.getUser(applicantEmail).getBody()).getName();
             if(applicantName == null){
-                ResponseEntity.badRequest().body("No User Exist");
+                ResponseEntity.status(HttpStatus.NOT_FOUND).body("No User Exist");
             }
-            if (score <= 0.80) {
+            if (score >= 0.40) {
                 emailService.sendHrEmail(applicantEmail, job, resumeUrl,applicantName);
                 applied.setStatus(Status.REVIEWING);
             } else {
                 emailService.sendRejectionEmail(applicantEmail, job, resumeUrl,applicantName);
                 applied.setStatus(Status.REJECTED);
                 applied.setBanExpiryDate(LocalDateTime.now().plusMonths(6));
+                appliedJobsRepository.save(applied);
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Your are not eligible to apply for this Job");
             }
 
             appliedJobsRepository.save(applied);
@@ -105,21 +116,49 @@ public class AppliedJobsServiceImpl {
         AppliedJobs existing = appliedJobsRepository.findByApplicantEmailAndJobId(applicantEmail, jobId)
                 .orElseThrow(() -> new RuntimeException("Application not found"));
 
-        existing.setStatus(newStatus);
 
-        // Handle REJECTED case: store for 6 months
+        Job job = jobService.getJobById(jobId).getBody();
+        User user = userService.getUser(applicantEmail).getBody();
+
         if (newStatus == Status.REJECTED) {
+            assert user != null;
+            assert  job != null;
+            emailService.sendRejectionEmail(applicantEmail,job, existing.getResumeUrl(), user.getName());
             existing.setBanExpiryDate(LocalDateTime.now().plusMonths(6));
         }
-
+        existing.setStatus(newStatus);
+        emailService.sendOfferLetterEmail(applicantEmail,user.getName(),job.getTitle(),
+                LocalDateTime.now().plusMonths(3).toString(),"5LPA","Faster growth","15",
+                Objects.requireNonNull(userService.getUser(job.getEmail()).getBody()).getName());
         appliedJobsRepository.save(existing);
         return ResponseEntity.ok("Application status updated to " + newStatus);
     }
 
+    public ResponseEntity<List<AppliedJobs>> getApplicantsForHr(String hrEmail) {
+        List<Job> hrJobs = jobService.getJobsByEmail(hrEmail);
+        if (hrJobs == null || hrJobs.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        // Use streams to filter out applicants with status 'REVIEWING'
+        List<AppliedJobs> applicants = hrJobs.stream()
+                .flatMap(job -> appliedJobsRepository.findByJobId(job.getId()).stream())
+                .filter(applicant -> applicant.getStatus() == Status.REVIEWING)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(applicants);
+    }
+
+
     public List<AppliedJobs> getAcceptedApplicantsByJobId(String jobId) {
-        return appliedJobsRepository.findByJobIdAndStatus(jobId, Status.ACCEPTED);
+        return appliedJobsRepository.findByJobIdAndStatus(jobId, Status.REVIEWING);
     }
     public List<AppliedJobs> getAppliedJobsByApplicantEmail(String email) {
         return appliedJobsRepository.findByApplicantEmail(email);
+    }
+    public ResponseEntity<String> sendRoomId(String hrEmail, String jobId, String applicantEmail, String roomId){
+        Job job = jobService.getJobById(jobId).getBody();
+        if (job == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Job not found");
+        return emailService.sendRoomEmail(hrEmail, job, applicantEmail, roomId);
     }
 }

@@ -116,8 +116,11 @@ export const useDeleteUser = () => {
   return useMutation({
     mutationFn: deleteUser,
     onSuccess: () => {
-      // Invalidate queries related to user data after deletion
       queryClient.invalidateQueries(["user"]);
     },
+    onError: (error)=>{
+      console.error("Error deleting user:", error);
+      queryClient.invalidateQueries(["user"])
+    }
   });
 };

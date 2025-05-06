@@ -38,7 +38,8 @@ public class EmailServiceImpl implements EmailService {
                 resumeUrl,
                 job.getDescription(),
                 job.getCategory(),
-                applicantName
+                applicantName,
+                ""
         );
         return ResponseEntity.ok("Mail sent Successfully");
     }
@@ -62,23 +63,81 @@ public class EmailServiceImpl implements EmailService {
                 resumeUrl,
                 job.getDescription(),
                 job.getCategory(),
-                applicantName
+                applicantName,
+                ""
         );
         return ResponseEntity.ok("Mail sent successfully");
     }
 
-    private void sendEmail(String toEmail,int templateId, String applicantEmail, String jobTitle, String resumeUrl, String jobDescription, String category, String applicantName) {
+    @Override
+    public ResponseEntity<String> sendRoomEmail(String hrEmail, Job job, String applicantEmail, String roomId) {
+        sendEmail(
+                applicantEmail,
+                3,
+                hrEmail,
+                job.getTitle(),
+                "",
+                job.getDescription(),
+                job.getCategory(),
+                "",
+                roomId
+        );
+        return ResponseEntity.ok("Mail sent successfully");
+    }
+    public void sendOfferLetterEmail(String toEmail, String applicantName, String jobTitle, String startDate,
+                                      String salary, String benefits, String responseDate, String hrName) {
         String Ip = getPublicIP();
         System.out.println(Ip);
         String url = "https://api.brevo.com/v3/smtp/email";
         HttpHeaders headers = new HttpHeaders();
+        headers.set("api-key", BREVO_API);
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-        System.out.println(BREVO_API);
+        // Prepare the email body
+        Map<String, Object> body = new HashMap<>();
+        body.put("sender", Map.of("name", "SmartHire HR", "email", "hr@smarthire.com"));
+        body.put("to", List.of(Map.of("email", toEmail)));
+        body.put("templateId", 4); // Assuming you have a template with ID 3 for the offer letter
+
+        // Prepare the parameters for the offer letter template
+        Map<String, Object> params = new HashMap<>();
+        params.put("applicantName", applicantName);
+        params.put("jobTitle", jobTitle);
+        params.put("startDate", startDate);
+        params.put("salary", salary);
+        params.put("benefits", benefits);
+        params.put("responseDate", responseDate);
+        params.put("hrName", hrName);
+
+        // Attach the parameters to the email body
+        body.put("params", params);
+
+        // Create HTTP request
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+        try {
+            // Make the request to Brevo API
+            ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+            System.out.println("BREVO RESPONSE: " + exchange.getBody());
+        } catch (Exception e) {
+            System.out.println("BREVO ERROR: " + e.getMessage());
+            e.printStackTrace(); // Print full stack trace
+        }
+    }
+
+
+    private void sendEmail(String toEmail,int templateId,
+                           String applicantEmail, String jobTitle, String resumeUrl,
+                           String jobDescription, String category, String applicantName,
+                           String roomId) {
+        String Ip = getPublicIP();
+        System.out.println(Ip);
+        String url = "https://api.brevo.com/v3/smtp/email";
+        HttpHeaders headers = new HttpHeaders();
         headers.set("api-key", BREVO_API);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
-        body.put("sender", Map.of("name", "Job Portal", "email", "maheshwari.keshav2090@gmail.com"));
+        body.put("sender", Map.of("name", "SmartHire", "email", "maheshwari.keshav2090@gmail.com"));
         body.put("to", List.of(Map.of("email", toEmail)));
         body.put("templateId", templateId);
 
@@ -97,9 +156,7 @@ public class EmailServiceImpl implements EmailService {
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
         try {
             ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-            System.out.println("BREVO RESPONSE: " + exchange.getBody());
         } catch (Exception e) {
-            System.out.println("BREVO ERROR: " + e.getMessage());
             e.printStackTrace(); // Print full stack trace
         }
 

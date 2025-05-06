@@ -1,13 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDeleteUser } from "../customHooks/useAuth";
 
 const Sidebar = ({ activeSection, setActiveSection, sections }) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
+  const { mutate: deleteUser } = useDeleteUser();
+
   const handleLogout = () => {
-    localStorage.removeItem("userEmail");
-    navigate("/login");
+    const userEmail = localStorage.getItem("userEmail");
+    deleteUser(userEmail, {
+      onSuccess: () => {
+        navigate("/", { state: { from: "profile" } });
+      },
+    });
   };
 
   return (

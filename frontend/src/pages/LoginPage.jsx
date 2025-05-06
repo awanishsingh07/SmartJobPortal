@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { mutate: signInUser, isLoading } = useSignIn();
 
   const handleChange = (e) => {
@@ -19,9 +19,16 @@ const LoginPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     signInUser(formData, {
-      onSuccess: () => navigate("/"),
-      onError: (err) =>
-        setErrors({ general: err.message || "Invalid credentials" }),
+      onSuccess: () => navigate("/", { state: { from: "login" } }),
+      onError: (err) => {
+        let message = "Invalid credentials";
+        if (err?.response?.status === 404) {
+          message = "No user found with this email. Please sign up.";
+        } else if (err?.response?.status === 401) {
+          message = "Incorrect password. Please try again.";
+        }
+        setErrors({ general: message });
+      },
     });
   };
 

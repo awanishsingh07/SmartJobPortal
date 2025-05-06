@@ -18,14 +18,26 @@ const InputField = ({
         {label}
       </label>
       <div className="relative">
-        <input
-          type={isPassword && showPassword ? "text" : type}
-          name={name}
-          onChange={type === "file" ? (e) => onChange(e, true) : onChange}
-          className="w-full px-4 py-2 bg-gray-800 text-gray-100 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          accept={type === "file" ? "application/pdf" : undefined}
-          required
-        />
+        {type === "textarea" ? (
+          <textarea
+            name={name}
+            value={value}
+            onChange={onChange}
+            className="w-full px-4 py-2 bg-gray-800 text-gray-100 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        ) : (
+          <input
+            type={isPassword && showPassword ? "text" : type}
+            name={name}
+            {...(type !== "file" && { value })}
+            onChange={onChange}
+            className="w-full px-4 py-2 bg-gray-800 text-gray-100 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            accept={type === "file" ? "application/pdf" : undefined}
+            required
+          />
+        )}
+
         {isPassword && (
           <button
             type="button"

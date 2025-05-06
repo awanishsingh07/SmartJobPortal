@@ -121,11 +121,12 @@ export const deleteUser = async (email) => {
       Authorization: `Bearer ${token}`,
     },
   });
+  logOutUser(); // <- good here
   return res.data;
 };
 
-// 7. Logout
 export const logOutUser = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
+  localStorage.removeItem("userEmail");
 };

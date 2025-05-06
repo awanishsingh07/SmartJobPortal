@@ -1,15 +1,14 @@
 package com.portal.jobs.service.impl;
 
-import com.portal.JobPortalApplication;
 import com.portal.Role;
 import com.portal.jobs.entities.Job;
 import com.portal.jobs.repository.JobRepository;
 import com.portal.jobs.service.JobService;
 import com.portal.user.Entities.User;
 import com.portal.user.service.UserService;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -33,9 +32,10 @@ public class JobServiceImpl implements JobService {
     @Override
     public ResponseEntity<String> createJob(Job job, String email) {
         User user = userService.getUser(email).getBody();
+
         if (isHR(user)) {
             log.warn("Unauthorized job creation attempt by: {}", email);
-            return ResponseEntity.status(403).body("Only HR can create jobs");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only HR can create jobs");
         }
         job.setEmail(email);
         job.setCreatedAt(LocalDateTime.now());
@@ -47,7 +47,8 @@ public class JobServiceImpl implements JobService {
     @Override
     public List<Job> getJobsByEmail(String email) {
         log.info("Fetching jobs posted by: {}", email);
-        return jobRepository.findByEmail(email);
+        List<Job> jobs = jobRepository.findByEmail(email);
+        return jobs;
     }
 
     @Override
@@ -69,7 +70,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public ResponseEntity<Job> updateJob(String id, Job updatedJob, String email) {
         User user = userService.getUser(email).getBody();
-        if (!isHR(user)) {
+        if (isHR(user)) {
             log.warn("Unauthorized job update attempt by: {}", email);
             return ResponseEntity.status(403).build();
         }

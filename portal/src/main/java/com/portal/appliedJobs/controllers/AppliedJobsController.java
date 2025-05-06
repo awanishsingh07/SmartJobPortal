@@ -46,4 +46,12 @@ public class AppliedJobsController {
         List<AppliedJobs> appliedJobs = appliedJobsService.getAppliedJobsByApplicantEmail(email);
         return ResponseEntity.ok(appliedJobs);
     }
+    @GetMapping("/applicants/{hrEmail}")
+    public ResponseEntity<List<AppliedJobs>> getApplicantsByHrEmail(@PathVariable String hrEmail) {
+        return appliedJobsService.getApplicantsForHr(hrEmail);
+    }
+    @PostMapping("/user")
+    public ResponseEntity<String> sendRoomId(@RequestParam String hrEmail, @RequestParam String jobId, @RequestParam String applicantEmail, @RequestParam String roomId){
+        return appliedJobsService.sendRoomId(hrEmail, jobId, applicantEmail, roomId);
+    }
 }

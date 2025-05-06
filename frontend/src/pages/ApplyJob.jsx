@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-// import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 // import { uploadFileToS3 } from '../utils/UploadFile';
 import AuthCard from '../components/AuthCard';
 import AuthForm from '../components/AuthForm';
 import { useApplyForJob } from '../customHooks/useAppliedJob';
 
 const ApplyJobFormPage = () => {
-  // const { jobId } = useParams();
-  const jobId = '681710271b82e90c844d4302'
+  const { jobId } = useParams();
   const [formData, setFormData] = useState({
     applicantEmail: '',
     resume: null,
@@ -46,8 +45,10 @@ const ApplyJobFormPage = () => {
             setErrors({ success: 'Application submitted!' });
           },
           onError: (error) => {
-            setErrors({ general: error.message || 'Failed to submit application.' });
-          },
+            const message = error?.response?.data;
+            setErrors({ general: message });
+          }
+          
         }
       );
     } catch (error) {

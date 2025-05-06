@@ -4,22 +4,21 @@ import { useParams, Link } from "react-router-dom";
 import AuthCard from "../components/AuthCard";
 import AuthButton from "../components/AuthButton";
 import EligibilityList from "../components/EligibilityList";
-import jobsData from "../constants/jobData";
-// import { useFetchJobById } from "../customHooks/useJob";
+import { useFetchJobById } from "../customHooks/useJob";
 
 const JobDetailsPage = () => {
   const { jobId } = useParams();
-  const job = jobsData.find((j) => j.id === jobId);
-  
-//   const { data: job, isLoading } = useFetchJobById(jobId);
 
-//   if (isLoading) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
-//         Loading job details...
-//       </div>
-//     );
-//   }
+  
+  const { data: job, isLoading } = useFetchJobById(jobId);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
+        Loading job details...
+      </div>
+    );
+  }
 
   if (!job) {
     return (

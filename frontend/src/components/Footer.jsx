@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { logo } from "../assets";
 
 const Footer = () => {
   return (
@@ -8,19 +9,20 @@ const Footer = () => {
         <div>
           <h3 className="text-lg font-semibold mb-4">Smart Job Portal</h3>
           <p className="text-gray-400">Connecting talent with opportunities.</p>
+          <img src={logo} alt="Logo" className="h-40 w-40" />
         </div>
         <div>
           <h3 className="text-lg font-semibold mb-4">Links</h3>
           <ul className="space-y-2">
             <li>
-              <Link to="/" className="hover:text-blue-400 transition-colors">
+              <Link to="/" className="hover:text-blue-400 text-[#2865FC] transition-colors">
                 Home
               </Link>
             </li>
             <li>
               <Link
                 to="/jobs"
-                className="hover:text-blue-400 transition-colors"
+                className="hover:text-blue-400 text-[#2865FC] transition-colors"
               >
                 Jobs
               </Link>
@@ -28,7 +30,7 @@ const Footer = () => {
             <li>
               <Link
                 to="/contact"
-                className="hover:text-blue-400 transition-colors"
+                className="hover:text-blue-400 text-[#2865FC] transition-colors"
               >
                 Contact
               </Link>
@@ -36,7 +38,7 @@ const Footer = () => {
             <li>
               <Link
                 to="/privacy"
-                className="hover:text-blue-400 transition-colors"
+                className="hover:text-blue-400 text-[#2865FC] transition-colors"
               >
                 Privacy Policy
               </Link>
@@ -44,7 +46,7 @@ const Footer = () => {
             <li>
               <Link
                 to="/terms"
-                className="hover:text-blue-400 transition-colors"
+                className="hover:text-blue-400 text-[#2865FC] transition-colors"
               >
                 Terms of Service
               </Link>
@@ -54,15 +56,15 @@ const Footer = () => {
         <div>
           <h3 className="text-lg font-semibold mb-4">Blog & Newsletter</h3>
           <p className="text-gray-400 mb-2">
-            <Link to="/blog" className="hover:text-blue-400 transition-colors">
+            <Link to="/blog" className="hover:text-blue-400 text-[#2865FC] transition-colors">
               Read our Blog
             </Link>
           </p>
-          <div className="flex">
+          <div className="flex gap-2">
             <input
               type="email"
               placeholder="Enter your email"
-              className="p-2 rounded-l-lg bg-gray-700 text-gray-100 border-none focus:outline-none"
+              className="px-4 rounded-l-lg bg-gray-700 text-gray-100 border-none focus:outline-none"
             />
             <button className="p-2 bg-blue-600 rounded-r-lg hover:bg-blue-700 transition-colors">
               Subscribe

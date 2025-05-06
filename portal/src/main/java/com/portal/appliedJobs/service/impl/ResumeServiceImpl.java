@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class ResumeServiceImpl implements ResumeService {
@@ -63,6 +65,33 @@ public class ResumeServiceImpl implements ResumeService {
 
     @Override
     public double calculateMatchScore(String resumeText, String jobDescription) {
-        return similarity.apply(resumeText.toLowerCase(), jobDescription.toLowerCase());
+        // Preprocess both resume and job description to remove stop words, punctuation, etc.
+        String preprocessedResume = preprocessText(resumeText);
+        String preprocessedJobDesc = preprocessText(jobDescription);
+
+        // Calculate similarity on preprocessed text
+        return similarity.apply(preprocessedResume.toLowerCase(), preprocessedJobDesc.toLowerCase());
     }
+
+    private String preprocessText(String text) {
+        text = text.replaceAll("[^a-zA-Z0-9\\s]", "");
+        text = text.toLowerCase();
+        text = removeStopWords(text);
+        return text;
+    }
+
+    private String removeStopWords(String text) {
+        List<String> stopWords = Arrays.asList("the", "and", "is", "in", "to", "for", "of", "a", "an", "with");
+        String[] words = text.split("\\s+");
+        StringBuilder result = new StringBuilder();
+
+        for (String word : words) {
+            if (!stopWords.contains(word)) {
+                result.append(word).append(" ");
+            }
+        }
+
+        return result.toString().trim();
+    }
+
 }

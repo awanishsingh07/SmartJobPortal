@@ -75,6 +75,8 @@ public class UserServiceImpl implements UserService {
         emailSet.add("keshav.iesbpl@gmail.com");
         emailSet.add("iamayush891@gmail.com");
         emailSet.add("ommohangaur029@gmail.com");
+        emailSet.add("mdjunaid8352@gmail.com");
+        emailSet.add("ravirajvishwakarma76321@gmail.com");
         return emailSet.contains(email);
     }
 

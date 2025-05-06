@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import FilterSection from "../components/FilterSection";
 import JobList from "../components/JobList";
-import jobsData from "../constants/jobData";
-// import { useFetchAllJobs } from "../customHooks/useJob";
+import { useFetchAllJobs } from "../customHooks/useJob";
 
 const DashboardPage = () => {
   const [filters, setFilters] = useState({
@@ -18,8 +17,7 @@ const DashboardPage = () => {
   useEffect(() => {
     setPage(0);
   }, [filters]);
-  //   const { data: jobs = [], isLoading } = useFetchAllJobs();
-  const jobs = jobsData;
+    const { data: jobs = []} = useFetchAllJobs();
 
   const filteredJobs = jobs
     .filter(

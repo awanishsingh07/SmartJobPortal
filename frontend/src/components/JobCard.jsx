@@ -7,9 +7,9 @@ const JobCard = ({ job }) => {
 
   return (
     <div
-      className="bg-gray-800 rounded-lg p-4 mb-4 hover:bg-gray-700 transition-colors"
+      className="bg-gray-800 rounded-lg p-4 mb-4 hover:bg-gray-700 "
     >
-      <Link to={`/jobs/${job.id}`}>
+      <Link to={`/jobs/${job.id}`} className='no-underline hover:no-underline focus:no-underline'>
         <h3 className="text-lg font-semibold text-gray-100">{job.title}</h3>
         <p className="text-gray-400 text-sm mt-1">{shortDesc}</p>
         <div className="flex justify-between mt-2 text-gray-500 text-sm">

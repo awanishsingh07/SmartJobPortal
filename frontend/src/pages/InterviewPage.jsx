@@ -1,32 +1,24 @@
+// InterviewPage.js
 import { useState } from "react";
-
-
-import JoinRoomForm from "../components/JoinRoomForm";
-import VideoCall from "../components/VideoCall"
-import CreateRoomForm from "../components/CreateRoom";
 import { getToken } from "../utils/api";
+import VideoCall from "../components/VideoCall";
+import RoomForm from "../components/RoomForm";
 
 const InterviewPage = () => {
-  const [tokenData, setTokenData] = useState(null);
+  const [tokenData, setTokenData] = useState("");
 
-  // Handles room creation or joining by HR or Candidate
-  const handleConnect = async ({ roomName, userName }) => {
-    const res = await getToken(roomName, userName);
+  // Handles room creation or joining
+  const handleConnect = async ({ roomId, userName }) => {
+    const res = await getToken(roomId, userName);
     setTokenData({ ...res.data });
   };
 
   return (
-    <div className="p-4">
+    <div className="p-6 max-w-4xl mx-auto">
       {!tokenData ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">HR: Create Room</h2>
-            <CreateRoomForm onCreated={handleConnect} />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Candidate: Join Room</h2>
-            <JoinRoomForm onJoin={handleConnect} />
-          </div>
+        <div className="grid grid-cols-1 gap-8">
+          {/* Room Form */}
+          <RoomForm handleConnect={handleConnect} />
         </div>
       ) : (
         <VideoCall token={tokenData.token} serverUrl={tokenData.url} />

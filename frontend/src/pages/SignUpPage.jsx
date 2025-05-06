@@ -23,13 +23,13 @@ const SignUpPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     signUpUser(formData, {
-      onSuccess: () => navigate("/"),
+      onSuccess: () => navigate("/",{state: {from: "signup"}}),
       onError: (err) => setErrors({ general: err.message || "Sign-up failed" }),
     });
   };
 
   const fields = [
-    { label: "Name", type: "text", name: "name", value: formData.name },
+    { label: "Full Name", type: "text", name: "name", value: formData.name },
     { label: "Email", type: "email", name: "email", value: formData.email },
     {
       label: "Password",

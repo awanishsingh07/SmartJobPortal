@@ -55,3 +55,15 @@
     @apply focus:outline-none focus:ring-2 focus:ring-[var(--primary)];
   }
 }
+
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #4B5563;
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: transparent;
+}

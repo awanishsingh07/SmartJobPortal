@@ -68,12 +68,13 @@ export const fetchJobById = async (id) => {
 };
 
 // Function to update a job
-export const updateJob = async (id, updatedJob, email) => {
+export const updateJob = async ({updatedJob, email}) => {
+  const { id, ...rest } = updatedJob;
   const token = getAuthToken();
   if(!token){
     return ;
   }
-  const response = await axios.put(`${BASEURL}/api/jobs/${id}`, updatedJob, {
+  const response = await axios.put(`${BASEURL}/api/jobs/${id}`, rest, {
     params: { email },
     headers: {
       Authorization: `Bearer ${token}`, // Add JWT token to the headers
@@ -83,12 +84,14 @@ export const updateJob = async (id, updatedJob, email) => {
 };
 
 // Function to delete a job
-export const deleteJob = async (id, email) => {
+export const deleteJob = async ({jobId, email}) => {
+  console.log(jobId)
   const token = getAuthToken();
+
   if(!token){
     return ;
   }
-  const response = await axios.delete(`${BASEURL}/api/jobs/${id}`, {
+  const response = await axios.delete(`${BASEURL}/api/jobs/${jobId}`, {
     params: { email },
     headers: {
       Authorization: `Bearer ${token}`, // Add JWT token to the headers
