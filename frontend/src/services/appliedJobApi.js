@@ -26,11 +26,11 @@ export const applyForJob = async (applicant) => {
 };
 
 // Function to update the application status
-export const updateApplicationStatus = async (
+export const updateApplicationStatus = async ({
   applicantEmail,
   jobId,
   status
-) => {
+}) => {
   const token = getAuthToken();
   const response = await axios.put(
     `${BASEURL}/api/applied-jobs/update-status`,
@@ -45,9 +45,21 @@ export const updateApplicationStatus = async (
   return response.data;
 };
 
-export const sendRoomIdToApplicant = async ({ hrEmail, jobId, applicantEmail, roomId }) => {
+export const sendRoomIdToApplicant = async ({
+  hrEmail,
+  jobId,
+  applicantEmail,
+  roomId,
+}) => {
+  const token = getAuthToken();
+  if (!token) {
+    return "token is not defined";
+  }
   const response = await axios.post(`${BASEURL}/api/applied-jobs/user`, null, {
     params: { hrEmail, jobId, applicantEmail, roomId },
+    headers: {
+      Authorization: `Bearer ${token}`, // Add JWT token to the headers
+    },
   });
   return response.data;
 };
@@ -67,7 +79,6 @@ export const getAcceptedApplicantsByJobId = async (jobId) => {
 };
 
 export const getApplicantsByHrEmail = async (email) => {
-
   const token = getAuthToken();
   const response = await axios.get(
     `${BASEURL}/api/applied-jobs/applicants/${email}`,

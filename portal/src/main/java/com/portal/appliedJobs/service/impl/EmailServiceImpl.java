@@ -3,6 +3,7 @@ package com.portal.appliedJobs.service.impl;
 import com.portal.appliedJobs.service.EmailService;
 import com.portal.jobs.entities.Job;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class EmailServiceImpl implements EmailService {
 
@@ -43,13 +45,7 @@ public class EmailServiceImpl implements EmailService {
         );
         return ResponseEntity.ok("Mail sent Successfully");
     }
-    public static String getPublicIP() {
-        try {
-            return new RestTemplate().getForObject("https://api64.ipify.org", String.class);
-        } catch (Exception e) {
-            return "Can't fetch IP";
-        }
-    }
+
 
 
     @Override
@@ -70,7 +66,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public ResponseEntity<String> sendRoomEmail(String hrEmail, Job job, String applicantEmail, String roomId) {
+    public ResponseEntity<String> sendRoomEmail(String hrEmail, Job job, String applicantEmail,String applicantName, String roomId) {
         sendEmail(
                 applicantEmail,
                 3,
@@ -79,15 +75,14 @@ public class EmailServiceImpl implements EmailService {
                 "",
                 job.getDescription(),
                 job.getCategory(),
-                "",
+                applicantName,
                 roomId
         );
         return ResponseEntity.ok("Mail sent successfully");
     }
     public void sendOfferLetterEmail(String toEmail, String applicantName, String jobTitle, String startDate,
                                       String salary, String benefits, String responseDate, String hrName) {
-        String Ip = getPublicIP();
-        System.out.println(Ip);
+
         String url = "https://api.brevo.com/v3/smtp/email";
         HttpHeaders headers = new HttpHeaders();
         headers.set("api-key", BREVO_API);
@@ -95,7 +90,7 @@ public class EmailServiceImpl implements EmailService {
 
         // Prepare the email body
         Map<String, Object> body = new HashMap<>();
-        body.put("sender", Map.of("name", "SmartHire HR", "email", "hr@smarthire.com"));
+        body.put("sender", Map.of("name", "SmartHire", "email", "maheshwari.keshav2090@gmail.com"));
         body.put("to", List.of(Map.of("email", toEmail)));
         body.put("templateId", 4); // Assuming you have a template with ID 3 for the offer letter
 
@@ -117,7 +112,7 @@ public class EmailServiceImpl implements EmailService {
         try {
             // Make the request to Brevo API
             ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-            System.out.println("BREVO RESPONSE: " + exchange.getBody());
+
         } catch (Exception e) {
             System.out.println("BREVO ERROR: " + e.getMessage());
             e.printStackTrace(); // Print full stack trace
@@ -129,28 +124,24 @@ public class EmailServiceImpl implements EmailService {
                            String applicantEmail, String jobTitle, String resumeUrl,
                            String jobDescription, String category, String applicantName,
                            String roomId) {
-        String Ip = getPublicIP();
-        System.out.println(Ip);
+
         String url = "https://api.brevo.com/v3/smtp/email";
         HttpHeaders headers = new HttpHeaders();
         headers.set("api-key", BREVO_API);
         headers.setContentType(MediaType.APPLICATION_JSON);
-
         Map<String, Object> body = new HashMap<>();
         body.put("sender", Map.of("name", "SmartHire", "email", "maheshwari.keshav2090@gmail.com"));
         body.put("to", List.of(Map.of("email", toEmail)));
         body.put("templateId", templateId);
 
         Map<String, Object> params = new HashMap<>();
-        params.put("JobTitle", jobTitle);
+        params.put("jobTitle", jobTitle);
         params.put("applicantEmail", applicantEmail);
         params.put("resumeUrl", resumeUrl);
         params.put("jobDescription", jobDescription);
-        params.put("title", jobTitle);
         params.put("role", category);
-        params.put("name", applicantName);
-
-
+        params.put("applicantName", applicantName);
+        params.put("roomId", roomId);
         body.put("params", params);
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);

@@ -65,7 +65,7 @@ const App = () => {
                 </div>
               }
             />
-            <Route path="/interviews/${roomId}" element={<InterviewPage />} />
+            <Route path="/interviews/:roomId" element={<InterviewPage />} />
           </Routes>
         </main>
         <Footer />

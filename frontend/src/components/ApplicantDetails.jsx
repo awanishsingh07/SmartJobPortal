@@ -2,18 +2,25 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { FaRegCheckCircle, FaRegTimesCircle } from "react-icons/fa";
 import { useFetchJobById } from "../customHooks/useJob";
-import { useUpdateApplicationStatus } from "../customHooks/useAppliedJob";
+import {
+  useSendRoomIdToApplicant,
+  useUpdateApplicationStatus,
+} from "../customHooks/useAppliedJob";
+import AuthButton from "./AuthButton";
 
 const ApplicantDetails = ({ applicant, jobId }) => {
   const navigate = useNavigate();
   const { data: job } = useFetchJobById(jobId);
 
   const { mutate: updateStatus } = useUpdateApplicationStatus();
+
+  const { mutate: sendRoomId } = useSendRoomIdToApplicant();
+
   const roomId = localStorage.getItem("roomId");
 
   const handleStatusChange = (status) => {
     updateStatus(
-      { applicantEmail: applicant.email, jobId: job.id, status },
+      { applicantEmail: applicant.applicantEmail, jobId: job.id, status },
       {
         onSuccess: () => {
           navigate("/profile/hr");
@@ -27,7 +34,19 @@ const ApplicantDetails = ({ applicant, jobId }) => {
       alert("Please create a Room ID first.");
       navigate("/profile/hr");
     } else {
-      navigate(`/interviews/${roomId}`);
+      sendRoomId(
+        {
+          applicantEmail: applicant.applicantEmail,
+          hrEmail: job.email,
+          jobId: job.id,
+          roomId,
+        },
+        {
+          onSuccess: () => {
+            navigate(`/interviews/${roomId}`);
+          },
+        }
+      );
     }
   };
 
@@ -67,9 +86,9 @@ const ApplicantDetails = ({ applicant, jobId }) => {
       <div className="flex flex-col sm:flex-row justify-end gap-4 mt-6">
         <button
           onClick={() => handleStatusChange("accepted")}
-          className="flex items-center justify-center py-2 px-4 bg-green-600 cursor-pointer text-white rounded-lg hover:bg-green-700 transition"
+          className="flex items-center justify-center py-2 px-4 bg-blue-600 cursor-pointer text-white rounded-lg hover:bg-blue-700 transition"
         >
-          <FaRegCheckCircle className="mr-2" /> Accept
+          <FaRegCheckCircle className="mr-2" /> Send Offer
         </button>
 
         <button

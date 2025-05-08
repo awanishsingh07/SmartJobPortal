@@ -2,8 +2,6 @@ package com.portal.appliedJobs.controllers;
 
 import com.portal.appliedJobs.models.AppliedJobs;
 import com.portal.appliedJobs.service.impl.AppliedJobsServiceImpl;
-import com.portal.appliedJobs.Status;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +27,7 @@ public class AppliedJobsController {
     @PutMapping("/update-status")
     public ResponseEntity<String> updateApplicationStatus(@RequestParam String applicantEmail,
                                                           @RequestParam String jobId,
-                                                          @RequestParam Status status) {
+                                                          @RequestParam String status) {
         return appliedJobsService.updateApplicationStatus(applicantEmail, jobId, status);
     }
 

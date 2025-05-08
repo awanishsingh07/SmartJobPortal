@@ -14,7 +14,7 @@ public class CorsConfiguration   {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOriginPatterns("http://localhost:5173") // Better than allowedOrigins for Spring Boot ≥2.4
+                        .allowedOriginPatterns("http://localhost:5173","https://smart-hire-three.vercel.app") // Better than allowedOrigins for Spring Boot ≥2.4
                         .allowedHeaders("*")
                         .exposedHeaders("Authorization")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")

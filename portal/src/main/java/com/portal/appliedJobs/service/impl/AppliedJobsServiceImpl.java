@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,7 +58,6 @@ public class AppliedJobsServiceImpl {
             Optional<AppliedJobs> existingApplication = appliedJobsRepository.findByApplicantEmailAndJobId(applicantEmail, jobId);
             if (existingApplication.isPresent()) {
                 AppliedJobs appliedJobs = existingApplication.get();
-                System.out.println(appliedJobs.toString());
                 if (appliedJobs.getStatus() == Status.REJECTED) {
                     LocalDateTime banExpiry = appliedJobs.getBanExpiryDate();
                     if (banExpiry != null && LocalDateTime.now().isBefore(banExpiry)) {
@@ -112,27 +112,60 @@ public class AppliedJobsServiceImpl {
         }
     }
 
-    public ResponseEntity<String> updateApplicationStatus(String applicantEmail, String jobId, Status newStatus) {
+    public ResponseEntity<String> updateApplicationStatus(String applicantEmail, String jobId, String newStatus) {
+        // Validate and convert status
+        Status status;
+        try {
+            status = Status.valueOf(newStatus.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status value: " + newStatus);
+        }
+
+        // Fetch application
         AppliedJobs existing = appliedJobsRepository.findByApplicantEmailAndJobId(applicantEmail, jobId)
                 .orElseThrow(() -> new RuntimeException("Application not found"));
 
-
+        // Fetch job and user details
         Job job = jobService.getJobById(jobId).getBody();
-        User user = userService.getUser(applicantEmail).getBody();
+        if (job == null) throw new RuntimeException("Job not found");
 
-        if (newStatus == Status.REJECTED) {
-            assert user != null;
-            assert  job != null;
-            emailService.sendRejectionEmail(applicantEmail,job, existing.getResumeUrl(), user.getName());
+        User user = userService.getUser(applicantEmail).getBody();
+        if (user == null) throw new RuntimeException("User not found");
+
+        // Handle rejection
+        if (status == Status.REJECTED) {
+            emailService.sendRejectionEmail(applicantEmail, job, existing.getResumeUrl(), user.getName());
             existing.setBanExpiryDate(LocalDateTime.now().plusMonths(6));
+        } else {
+            // Fetch recruiter
+            User recruiter = userService.getUser(job.getEmail()).getBody();
+            if (recruiter == null) {
+                ResponseEntity.status(HttpStatus.FORBIDDEN).body("No hr found with this job");
+                throw new RuntimeException("Recruiter not found");
+            };
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy");
+            String startDate = LocalDateTime.now().plusMonths(3).format(formatter);       // e.g., "07 August 2025"
+            String responseDate = LocalDateTime.now().plusDays(15).format(formatter);
+            // Send offer letter
+            emailService.sendOfferLetterEmail(
+                    applicantEmail,
+                    user.getName(),
+                    job.getTitle(),
+                    startDate,
+                    "35LPA",
+                    "Faster growth",
+                    responseDate,
+                    recruiter.getName()
+            );
         }
-        existing.setStatus(newStatus);
-        emailService.sendOfferLetterEmail(applicantEmail,user.getName(),job.getTitle(),
-                LocalDateTime.now().plusMonths(3).toString(),"5LPA","Faster growth","15",
-                Objects.requireNonNull(userService.getUser(job.getEmail()).getBody()).getName());
+
+        // Update status and save
+        existing.setStatus(status);
         appliedJobsRepository.save(existing);
-        return ResponseEntity.ok("Application status updated to " + newStatus);
+
+        return ResponseEntity.ok("Application status updated to " + status);
     }
+
 
     public ResponseEntity<List<AppliedJobs>> getApplicantsForHr(String hrEmail) {
         List<Job> hrJobs = jobService.getJobsByEmail(hrEmail);
@@ -159,6 +192,10 @@ public class AppliedJobsServiceImpl {
     public ResponseEntity<String> sendRoomId(String hrEmail, String jobId, String applicantEmail, String roomId){
         Job job = jobService.getJobById(jobId).getBody();
         if (job == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Job not found");
-        return emailService.sendRoomEmail(hrEmail, job, applicantEmail, roomId);
+        String applicantName = Objects.requireNonNull(userService.getUser(applicantEmail).getBody()).getName();
+        if(applicantName == null){
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body("No User Exist");
+        }
+        return emailService.sendRoomEmail(hrEmail, job, applicantEmail,applicantName, roomId);
     }
 }
