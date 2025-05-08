@@ -6,10 +6,7 @@ const getAuthToken = () => {
   return localStorage.getItem("accessToken");
 };
 
-// Function to apply for a job
 export const applyForJob = async (applicant) => {
-  // console.log(resumeUrl)
-  // console.log(jobId)
   const { applicantEmail, resumeUrl, jobId } = {
     applicantEmail: applicant.applicantEmail,
     resumeUrl: applicant.resumeUrl,
@@ -19,7 +16,7 @@ export const applyForJob = async (applicant) => {
   const response = await axios.post(`${BASEURL}/api/applied-jobs/apply`, null, {
     params: { applicantEmail, resumeUrl, jobId },
     headers: {
-      Authorization: `Bearer ${token}`, // Add JWT token to the headers
+      Authorization: `Bearer ${token}`, 
     },
   });
   return response.data;
@@ -38,7 +35,7 @@ export const updateApplicationStatus = async ({
     {
       params: { applicantEmail, jobId, status },
       headers: {
-        Authorization: `Bearer ${token}`, // Add JWT token to the headers
+        Authorization: `Bearer ${token}`, 
       },
     }
   );

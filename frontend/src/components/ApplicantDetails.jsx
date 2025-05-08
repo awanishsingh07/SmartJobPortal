@@ -12,7 +12,7 @@ const ApplicantDetails = ({ applicant, jobId }) => {
   const navigate = useNavigate();
   const { data: job } = useFetchJobById(jobId);
 
-  const { mutate: updateStatus } = useUpdateApplicationStatus();
+const { mutate: updateStatus } = useUpdateApplicationStatus();
 
   const { mutate: sendRoomId } = useSendRoomIdToApplicant();
 

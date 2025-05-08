@@ -77,6 +77,7 @@ export const signUpUser = async (userData) => {
 
 // 2. Signin
 export const signInUser = async (loginData) => {
+  console.log(loginData)
   const res = await axiosInstance.post("/auth/signin", loginData);
   if (res.data.token) {
     localStorage.setItem("accessToken", res.data.jwtToken);
